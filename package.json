@@ -1,5 +1,5 @@
 {
-  "name": "hybrid-cache",
+  "name": "@enumatech/hybrid-cache",
   "version": "1.0.0",
   "description": "Hybrid Cache: in-process memory cache with distributed invalidation",
   "main": "index.js",
