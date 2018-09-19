@@ -12,6 +12,12 @@ all processes must be deleted, not just in the process that changes the data.
 Hybrid Cache uses Redis pub-sub to notify all caches in all processes of these
 data changes.
 
+## Installation
+
+```
+nmp install @enumatech/hybrid-cache
+```
+
 ## Running tests
 
 ```
