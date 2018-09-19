@@ -1,0 +1,20 @@
+{
+  "name": "hybrid-cache",
+  "version": "1.0.0",
+  "description": "Hybrid Cache: in-process memory cache with distributed invalidation",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Lionello Lunesu",
+  "license": "MIT",
+  "dependencies": {
+    "ioredis": "^4.0.0",
+    "memory-cache": "^0.2.0"
+  },
+  "devDependencies": {
+    "jest": "^23.6.0",
+    "jest-environment-jsdom": "^23.4.0"
+  }
+}
