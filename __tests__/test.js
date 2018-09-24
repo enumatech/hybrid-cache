@@ -4,25 +4,34 @@ const Redis = require('ioredis')
 
 // Mocked Redis object with minimal pub-sub functionality
 class MockPubSub extends Redis {
-  constructor(callbacks) {
+  constructor(store) {
+    Assert.ok(Array.isArray(store.callbacks))
     super()
-    this.callbacks = callbacks
+    this.store = store
   }
   on(topic, cb) {
     this.onMessage = cb
   }
+  get(key) {
+    return Promise.resolve(this.store[key] || null)
+  }
+  set(key, v, px, timeout) {
+    this.store[key] = v
+    if (timeout) setTimeout(() => delete this.store[key], timeout)
+    return Promise.resolve("OK")
+  }
   duplicate() {
-    return new MockPubSub(this.callbacks)
+    return new MockPubSub(this.store)
   }
   subscribe(topic) {
-    this.callbacks.push(this.onMessage)
+    this.store.callbacks.push(this.onMessage)
   }
   publish(topic, key) {
-    this.callbacks.forEach(cb => cb(topic, key))
+    this.store.callbacks.forEach(cb => cb(topic, key))
   }
   disconnect() {
-    const index = this.callbacks.findIndex(cb => cb === this.onMessage)
-    this.callbacks[index] = () => {}
+    const index = this.store.callbacks.findIndex(cb => cb === this.onMessage)
+    this.store.callbacks[index] = () => {}
   }
 }
 
@@ -40,37 +49,63 @@ describe('Hybrid-Cache', () => {
     let cache, backingStore
 
     beforeEach(async () => {
-      backingStore = []
+      backingStore = {callbacks:[]}
       cache = await Hybrid.Create(Topic, new MockPubSub(backingStore))
       Assert.ok(cache instanceof Hybrid.Cache, 'Construction with topic should succeed')
     })
 
     it('basic get/put', async () => {
       Assert.strictEqual(cache.get(Key), null)
-      Assert.strictEqual(cache.put(Key, Value), Value)
-      Assert.strictEqual(cache.get(Key), Value)
+      Assert.deepStrictEqual(cache.put(Key, Value), Value)
+      Assert.deepStrictEqual(cache.get(Key), Value)
     })
 
     it('invalidate clears the key', async () => {
-      Assert.strictEqual(cache.put(Key, Value), Value)
+      Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.invalidate(Key)
       Assert.strictEqual(cache.get(Key), null)
     })
 
     it('invalidate clears the key for every cache', async () => {
-      Assert.strictEqual(cache.put(Key, Value), Value)
+      Assert.deepStrictEqual(cache.put(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
-      Assert.strictEqual(cache2.put(Key, Value), Value)
+      Assert.deepStrictEqual(cache2.put(Key, Value), Value)
       await cache2.invalidate(Key)
       Assert.strictEqual(cache.get(Key), null)
       Assert.strictEqual(cache2.get(Key), null)
     })
 
     it('can unsubscribe', async () => {
-      Assert.strictEqual(cache.put(Key, Value), Value)
+      Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.unsubscribe()
       await cache.invalidate(Key)
-      Assert.strictEqual(cache.get(Key), Value)
+      Assert.deepStrictEqual(cache.get(Key), Value)
+    })
+
+    it('can put with timeout', async () => {
+      Assert.deepStrictEqual(cache.put(Key, Value, 50), Value)
+      Assert.deepStrictEqual(await cache.getRedis(Key), Value)
+      await new Promise(resolve => setTimeout(resolve, 100))
+      Assert.strictEqual(cache.get(Key), null)
+    })
+
+    it('asynchronous get/put', async () => {
+      Assert.deepStrictEqual(await cache.putRedis(Key, Value), Value)
+      Assert.deepStrictEqual(await cache.getRedis(Key), Value)
+    })
+
+    it('asynchronous get/put', async () => {
+      Assert.deepStrictEqual(await cache.putRedis(Key, Value), Value)
+      let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
+      Assert.deepStrictEqual(await cache2.getRedis(Key), Value)
+    })
+
+    it('asynchronous get/put with timeout', async () => {
+      Assert.deepStrictEqual(await cache.putRedis(Key, Value, 50), Value)
+      let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
+      Assert.deepStrictEqual(await cache2.getRedis(Key), Value)
+      await new Promise(resolve => setTimeout(resolve, 100))
+      Assert.strictEqual(await cache2.getRedis(Key), null)
     })
   })
 })

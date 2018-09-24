@@ -4,6 +4,7 @@ with (import <nixpkgs> {});
 mkShell {
   buildInputs = [
     nodejs-8_x nodePackages_8_x.pnpm
+    redis
   ];
 
   shellHook = ''

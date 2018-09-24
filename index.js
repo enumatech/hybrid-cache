@@ -56,6 +56,20 @@ Cache.prototype.get = function (key) {
 }
 
 /**
+ * @param {string} key The key to get
+ * @returns {Promise.<*?>} Evaluates to the value or `null`
+ */
+Cache.prototype.getRedis = function (key) {
+  const value = this.cache.get(key)
+  if (value === null) {
+    return this._redis().get(key)
+      .then(value => JSON.parse(value))
+  } else {
+    return value
+  }
+}
+
+/**
  * @param {string} key The key to put
  * @param {*?} value The value to store
  * @param {number} [timeout] The timeout value (in ms.)
@@ -66,13 +80,37 @@ Cache.prototype.put = function (key, value, timeout) {
 }
 
 /**
+ * @param {string} key The key to put
+ * @param {*?} value The value to store
+ * @param {number} [timeout] The timeout value (in ms.)
+ * @returns {Promise.<*?>} Evaluates to the value being stored
+ */
+Cache.prototype.putRedis = function (key, value, timeout) {
+  const extra = timeout ? ['PX', timeout] : []
+  this._redis().set(key, JSON.stringify(value), ...extra)
+    .catch(err => {
+      /* istanbul ignore next */
+      console.error(err.stack)
+    })
+  return this.cache.put(key, value, timeout)
+}
+
+/**
  * @param {string} key The key to invalidate
  * @returns {Promise}
  */
 Cache.prototype.invalidate = function (key) {
+  return this._redis().publish(this.topic, key)
+}
+
+/**
+ * @private
+ * @returns {Redis.Redis}
+ */
+Cache.prototype._redis = function () {
+  /* istanbul ignore next */
   if (this.redisPub == null) {
     this.redisPub = new Redis(this.redisOptions)
   }
-
-  return this.redisPub.publish(this.topic, key)
+  return this.redisPub
 }
