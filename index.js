@@ -114,3 +114,10 @@ Cache.prototype._redis = function () {
   }
   return this.redisPub
 }
+/**
+ * @param  {string} key
+ * @return {Boolean}
+ */
+Cache.prototype.has = function (key) {
+  return this.cache.get(key) != null
+}

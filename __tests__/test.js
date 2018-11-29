@@ -54,15 +54,18 @@ describe('Hybrid-Cache', () => {
       Assert.ok(cache instanceof Hybrid.Cache, 'Construction with topic should succeed')
     })
 
-    it('basic get/put', async () => {
+    it('basic has/get/put', async () => {
       Assert.strictEqual(cache.get(Key), null)
+      Assert.strictEqual(cache.has(Key), false)
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
+      Assert.strictEqual(cache.has(Key), true)
       Assert.deepStrictEqual(cache.get(Key), Value)
     })
 
     it('invalidate clears the key', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.invalidate(Key)
+      Assert.strictEqual(cache.has(Key), false)
       Assert.strictEqual(cache.get(Key), null)
     })
 
