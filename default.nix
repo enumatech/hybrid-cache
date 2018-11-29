@@ -4,11 +4,6 @@ with (import <nixpkgs> {});
 mkShell {
   buildInputs = [
     nodejs-8_x nodePackages_8_x.pnpm
-    redis
   ];
-
-  shellHook = ''
-    export PATH=$PATH:$(pwd)/node_modules/.bin
-  '';
 }
 
