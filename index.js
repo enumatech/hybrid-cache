@@ -115,8 +115,8 @@ Cache.prototype._redis = function () {
   return this.redisPub
 }
 /**
- * @param  {string} key
- * @return {Boolean}
+ * @param  {string} key The key to check if exist
+ * @return {Boolean} true if key is found
  */
 Cache.prototype.has = function (key) {
   return this.cache.get(key) != null
