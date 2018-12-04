@@ -80,20 +80,20 @@ describe('Hybrid-Cache', () => {
     })
 
     it('invalidate and update for every cache', async () => {
-      const Value2 = {
-        rich2: 'object2'
-      }
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
-      const p = new Promise( (resolve) => {
+      Assert.deepStrictEqual(cache2.put(Key, Value), Value)
+      const promise = new Promise( (resolve) => {
         cache2.on('invalidate', (channel, key) => {
-          resolve(cache2.put(key, Value2))
+          Assert.strictEqual(key, Key)
+          Assert.strictEqual(channel, Topic)
+          Assert.strictEqual(cache2.get(Key), Value)
+          resolve()
         })
       })
       await cache.invalidate(Key)
-      const r = await p
-      Assert.deepStrictEqual(r, Value2)
-      Assert.deepStrictEqual(cache.get(r), null)
+      await promise
+      Assert.deepStrictEqual(cache.get(Key), null)
     })
 
     it('can unsubscribe', async () => {
