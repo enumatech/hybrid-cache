@@ -55,7 +55,7 @@ describe('Hybrid-Cache', () => {
     })
 
     it('on checks arg', () => {
-      Assert.throws(() => cache.on('test', () => {}), /event name must be invalidate/, 'first argument not equal to "invalidate" should fail')
+      Assert.throws(() => cache.on('test', () => {}), /Event name must be "invalidate"/, 'first argument not equal to "invalidate" should fail')
     })
 
     it('basic get/put', () => {

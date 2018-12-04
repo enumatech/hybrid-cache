@@ -113,7 +113,7 @@ Cache.prototype.invalidate = function (key) {
  */
 Cache.prototype.on = function (eventName, cb) {
   if (eventName !== 'invalidate') {
-    throw new Error('event name must be invalidate')
+    throw new Error('Event name must be "invalidate"')
   }
   this.cb = cb
 }
