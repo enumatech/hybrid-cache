@@ -56,16 +56,13 @@ describe('Hybrid-Cache', () => {
 
     it('basic has/get/put', async () => {
       Assert.strictEqual(cache.get(Key), null)
-      Assert.strictEqual(cache.has(Key), false)
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
-      Assert.strictEqual(cache.has(Key), true)
       Assert.deepStrictEqual(cache.get(Key), Value)
     })
 
     it('invalidate clears the key', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.invalidate(Key)
-      Assert.strictEqual(cache.has(Key), false)
       Assert.strictEqual(cache.get(Key), null)
     })
 
@@ -84,10 +81,15 @@ describe('Hybrid-Cache', () => {
       }
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
-      Assert.deepStrictEqual(cache2.put(Key, Value), Value)
-      await cache2.invalidateAndUpdate(Key, Value2)
-      Assert.deepStrictEqual(cache.get(Key), Value2)
-      Assert.deepStrictEqual(cache2.get(Key), Value2)
+      new Promise( (resolve) => {
+        cache2.on(Topic, (channel, key) => {
+          resolve(cache2.put(key, Value2))
+        })
+      }).then( r => {
+        Assert.deepStrictEqual(r, Value2)
+        Assert.deepStrictEqual(cache.get(r), null)
+      })
+      await cache.invalidate(Key)
     })
 
     it('can unsubscribe', async () => {
