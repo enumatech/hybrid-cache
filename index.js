@@ -109,7 +109,7 @@ Cache.prototype.invalidate = function (key) {
 
 /**
  * @param {string} eventName Only 'invalidate' is accepted
- * @param {function} cb callback
+ * @param {function|null} cb callback function or null
  */
 Cache.prototype.on = function (eventName, cb) {
   if (eventName !== 'invalidate') {
