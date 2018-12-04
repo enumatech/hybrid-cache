@@ -29,6 +29,9 @@ function Cache(topic, redisOrOptions) {
   this.redisSub = redisOrOptions instanceof Redis ? redisOrOptions.duplicate() : new Redis(redisOrOptions)
 
   this.redisSub.on('message', (channel, key) => {
+    if (this.cb) {
+      return this.cb(channel, key)
+    }
     return this.cache.del(key)
   })
 }
@@ -101,6 +104,18 @@ Cache.prototype.putRedis = function (key, value, timeout) {
  */
 Cache.prototype.invalidate = function (key) {
   return this._redis().publish(this.topic, key)
+}
+
+
+/**
+ * @param {string} eventName Only 'invalidate' is accepted
+ * @param {function|null} cb callback function or null
+ */
+Cache.prototype.on = function (eventName, cb) {
+  if (eventName !== 'invalidate') {
+    throw new Error('Event name must be "invalidate"')
+  }
+  this.cb = cb
 }
 
 /**
