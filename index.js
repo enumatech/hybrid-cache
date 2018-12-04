@@ -108,13 +108,14 @@ Cache.prototype.invalidate = function (key) {
 
 
 /**
- * @param {string} topic Topic to subscribe
+ * @param {string} eventName Only 'invalidate' is accepted
  * @param {function} cb callback
  */
-Cache.prototype.on = function (topic, cb) {
-  if (topic === this.topic) {
-    this.cb = cb
+Cache.prototype.on = function (eventName, cb) {
+  if (eventName !== 'invalidate') {
+    throw new Error('event name must be invalidate')
   }
+  this.cb = cb
 }
 
 /**

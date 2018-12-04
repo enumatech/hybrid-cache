@@ -54,7 +54,11 @@ describe('Hybrid-Cache', () => {
       Assert.ok(cache instanceof Hybrid.Cache, 'Construction with topic should succeed')
     })
 
-    it('basic has/get/put', async () => {
+    it('on checks arg', () => {
+      Assert.throws(() => cache.on('test', () => {}), /event name must be invalidate/, 'first argument not equal to "invalidate" should fail')
+    })
+
+    it('basic get/put', () => {
       Assert.strictEqual(cache.get(Key), null)
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       Assert.deepStrictEqual(cache.get(Key), Value)
@@ -81,15 +85,15 @@ describe('Hybrid-Cache', () => {
       }
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
-      new Promise( (resolve) => {
-        cache2.on(Topic, (channel, key) => {
+      const p = new Promise( (resolve) => {
+        cache2.on('invalidate', (channel, key) => {
           resolve(cache2.put(key, Value2))
         })
-      }).then( r => {
-        Assert.deepStrictEqual(r, Value2)
-        Assert.deepStrictEqual(cache.get(r), null)
       })
       await cache.invalidate(Key)
+      const r = await p
+      Assert.deepStrictEqual(r, Value2)
+      Assert.deepStrictEqual(cache.get(r), null)
     })
 
     it('can unsubscribe', async () => {
