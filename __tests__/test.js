@@ -78,6 +78,18 @@ describe('Hybrid-Cache', () => {
       Assert.strictEqual(cache2.get(Key), null)
     })
 
+    it('invalidate and update for every cache', async () => {
+      const Value2 = {
+        rich2: 'object2'
+      }
+      Assert.deepStrictEqual(cache.put(Key, Value), Value)
+      let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
+      Assert.deepStrictEqual(cache2.put(Key, Value), Value)
+      await cache2.invalidateAndUpdate(Key, Value2)
+      Assert.deepStrictEqual(cache.get(Key), Value2)
+      Assert.deepStrictEqual(cache2.get(Key), Value2)
+    })
+
     it('can unsubscribe', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.unsubscribe()

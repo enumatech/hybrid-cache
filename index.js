@@ -28,8 +28,14 @@ function Cache(topic, redisOrOptions) {
   this.redisPub = redisOrOptions instanceof Redis ? redisOrOptions : null
   this.redisSub = redisOrOptions instanceof Redis ? redisOrOptions.duplicate() : new Redis(redisOrOptions)
 
-  this.redisSub.on('message', (channel, key) => {
-    return this.cache.del(key)
+  this.redisSub.on('message', (channel, msg) => {
+    if (msg.action === 'invalidate') {
+      return this.cache.del(msg.key)
+    }
+    else if (msg.action === 'invalidateAndUpdate') {
+      // no need to del. just replace the object
+      return this.cache.put(msg.key, msg.value, msg.timeout)
+    }
   })
 }
 
@@ -100,7 +106,23 @@ Cache.prototype.putRedis = function (key, value, timeout) {
  * @returns {Promise}
  */
 Cache.prototype.invalidate = function (key) {
-  return this._redis().publish(this.topic, key)
+  return this._redis().publish(this.topic, { action: 'invalidate', key: key })
+}
+
+
+/**
+ * @param {string} key The key to invalidate
+ * @param {*?} value The value to store
+ * @param {number?} [timeout] The timeout value (in ms.)
+ * @returns {Promise}
+ */
+Cache.prototype.invalidateAndUpdate = function (key, value, timeout) {
+  return this._redis().publish(
+    this.topic,
+    { action: 'invalidateAndUpdate',
+      key: key,
+      value: value,
+      timeout: timeout })
 }
 
 /**
