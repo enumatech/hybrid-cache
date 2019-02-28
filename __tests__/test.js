@@ -36,8 +36,22 @@ class MockPubSub extends Redis {
 }
 
 describe('Hybrid-Cache', () => {
-  it('ctor checks args', () => {
-    Assert.throws(() => new Hybrid.Cache(), /Expected 1st argument "topic" of type string/, 'Construction without topic should fail')
+  describe('ctor', () => {
+    it('requires topic', () => {
+      Assert.throws(() => new Hybrid.Cache(), /Expected 1st argument "topic" of type string/, 'Construction without topic should fail')
+    })
+
+    it('default Redis', () => {
+      new Hybrid.Cache('topic')
+    })
+
+    it('with Redis', () => {
+      new Hybrid.Cache('topic', new Redis())
+    })
+
+    it('with RedisOptions', () => {
+      new Hybrid.Cache('topic', {})
+    })
   })
 
   describe('with mock redis', () => {
