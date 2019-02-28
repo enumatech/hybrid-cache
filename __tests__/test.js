@@ -54,7 +54,7 @@ describe('Hybrid-Cache', () => {
       Assert.ok(cache instanceof Hybrid.Cache, 'Construction with topic should succeed')
     })
 
-    it('on checks arg', () => {
+    it('.on checks arg', () => {
       Assert.throws(() => cache.on('test', () => {}), /Event name must be "invalidate"/, 'first argument not equal to "invalidate" should fail')
     })
 
@@ -64,13 +64,13 @@ describe('Hybrid-Cache', () => {
       Assert.deepStrictEqual(cache.get(Key), Value)
     })
 
-    it('invalidate clears the key', async () => {
+    it('.invalidate clears the key', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.invalidate(Key)
       Assert.strictEqual(cache.get(Key), null)
     })
 
-    it('invalidate clears the key for every cache', async () => {
+    it('.invalidate clears the key for every cache', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
       Assert.deepStrictEqual(cache2.put(Key, Value), Value)
@@ -79,7 +79,7 @@ describe('Hybrid-Cache', () => {
       Assert.strictEqual(cache2.get(Key), null)
     })
 
-    it('invalidate and update for every cache', async () => {
+    it('.invalidate and update for every cache', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
       Assert.deepStrictEqual(cache2.put(Key, Value), Value)
@@ -96,14 +96,14 @@ describe('Hybrid-Cache', () => {
       Assert.deepStrictEqual(cache.get(Key), null)
     })
 
-    it('can unsubscribe', async () => {
+    it('can .unsubscribe', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value), Value)
       await cache.unsubscribe()
       await cache.invalidate(Key)
       Assert.deepStrictEqual(cache.get(Key), Value)
     })
 
-    it('can put with timeout', async () => {
+    it('can .put with timeout', async () => {
       Assert.deepStrictEqual(cache.put(Key, Value, 50), Value)
       Assert.deepStrictEqual(await cache.getRedis(Key), Value)
       await new Promise(resolve => setTimeout(resolve, 100))
@@ -115,7 +115,7 @@ describe('Hybrid-Cache', () => {
       Assert.deepStrictEqual(await cache.getRedis(Key), Value)
     })
 
-    it('asynchronous get/put', async () => {
+    it('asynchronous get/put across instances', async () => {
       Assert.deepStrictEqual(await cache.putRedis(Key, Value), Value)
       let cache2 = await Hybrid.Create(Topic, new MockPubSub(backingStore))
       Assert.deepStrictEqual(await cache2.getRedis(Key), Value)

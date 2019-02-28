@@ -24,15 +24,20 @@ function Cache(topic, redisOrOptions) {
   }
   this.topic = topic
   this.cache = new MemoryCache.Cache()
-  this.redisOptions = redisOrOptions instanceof Redis ? null : redisOrOptions
-  this.redisPub = redisOrOptions instanceof Redis ? redisOrOptions : null
-  this.redisSub = redisOrOptions instanceof Redis ? redisOrOptions.duplicate() : new Redis(redisOrOptions)
+  if (redisOrOptions instanceof Redis) {
+    this.redisPub = redisOrOptions
+    this.redisSub = redisOrOptions.duplicate()
+  } else {
+    this.redisOptions = redisOrOptions
+    this.redisSub = new Redis(redisOrOptions)
+  }
 
   this.redisSub.on('message', (channel, key) => {
     if (this.cb) {
-      return this.cb(channel, key)
+      this.cb(channel, key)
+    } else {
+      this.cache.del(key)
     }
-    return this.cache.del(key)
   })
 }
 
@@ -113,7 +118,7 @@ Cache.prototype.invalidate = function (key) {
  */
 Cache.prototype.on = function (eventName, cb) {
   if (eventName !== 'invalidate') {
-    throw new Error('Event name must be "invalidate"')
+    throw Error('Event name must be "invalidate"')
   }
   this.cb = cb
 }
